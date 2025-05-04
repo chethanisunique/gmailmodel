@@ -1,0 +1,20 @@
+{
+  "name": "smart-email-assistant",
+  "version": "1.0.0",
+  "description": "The Smart Email Assistant is designed to help Gmail users write better emails by offering suggestions for grammar correction, tone adjustment, and sentence rephrasing. It helps users draft professional, polite, or persuasive emails with ease.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  }
+}

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Email Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 90%;
+            background: white;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode .container {
+            background-color: #2c2c2c;
+            color: #e0e0e0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            background-color: white;
+            color: #333;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode textarea {
+            background-color: #444;
+            color: #e0e0e0;
+            border: 1px solid #666;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .toggle-dark {
+            background-color: #555;
+            margin-bottom: 20px;
+        }
+
+        .toggle-dark:hover {
+            background-color: #444;
+        }
+
+        .suggestions {
+            margin-top: 30px;
+        }
+
+        .suggestion {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-left: 6px solid #4CAF50;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode .suggestion {
+            background-color: #3a3a3a;
+        }
+
+        .suggestion strong {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: inherit;
+            font-size: 15px;
+            margin: 0;
+        }
+
+        .copy-btn {
+    display: inline-block;
+    margin-top: 10px;
+    background-color: #2196F3;
+    border: none;
+    color: white;
+    padding: 5px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.copy-btn:hover {
+    background-color: #1976D2;
+}
+
+
+
+        .copy-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .spinner {
+            display: none;
+            margin: 20px auto;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>✉️ Smart Email Assistant</h1>
+        <button class="toggle-dark" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        <textarea id="emailText" placeholder="Type or paste your email here..."></textarea>
+        <button onclick="getSuggestions()">Get Suggestions</button>
+
+        <div class="spinner" id="loadingSpinner"></div>
+
+        <div class="suggestions" id="suggestionsContainer"></div>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => alert('Copied to clipboard!'))
+                .catch(err => console.error('Failed to copy:', err));
+        }
+
+        function getSuggestions() {
+            const text = document.getElementById('emailText').value;
+            const spinner = document.getElementById('loadingSpinner');
+            spinner.style.display = 'block';
+
+            fetch('http://localhost:3000/generate-suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                spinner.style.display = 'none';
+                const container = document.getElementById('suggestionsContainer');
+                container.innerHTML = ''; // Clear old suggestions
+
+                const types = [
+                    { label: '✅ Corrected Email', content: data.corrected },
+                    { label: '🎩 Formal Email', content: data.formal },
+                    { label: '🔥 Persuasive Email', content: data.persuasive }
+                ];
+
+                types.forEach(type => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion';
+                    div.innerHTML = `
+                        <strong>${type.label}</strong>
+                        <pre>${type.content}</pre>
+                        <button class="copy-btn" onclick="copyToClipboard(\`${type.content.replace(/`/g, '\\`')}\`)">Copy</button>
+                    `;
+                    container.appendChild(div);
+                });
+            })
+            .catch(error => {
+                spinner.style.display = 'none';
+                console.error('Error generating suggestions:', error);
+                alert('Error generating suggestions. Check the backend server.');
+            });
+        }
+    </script>
+
+</body>
+</html>
